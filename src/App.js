@@ -1,193 +1,121 @@
 import React, { useState, useEffect } from "react";
 import axios from "axios";
-import { Button } from "./components/ui/button";
-import { Input } from "./components/ui/input";
-import { Card } from "./components/ui/card";
+import { useWeatherQuery } from "./useWeatherQuery";
 
-function App() {
-  const [city, setCity] = useState("");
-  const [weather, setWeather] = useState(null);
-  const [error, setError] = useState("");
-  const [loading, setLoading] = useState(false);
+ const API_KEY ="1cb58c1f6189475381a71419250508"
+const fetchWeather = async (city) => {
+  const response = await axios.get(
+    `https://api.weatherapi.com/v1/forecast.json?key=${API_KEY}&q=${city}&days=14&aqi=no&alerts=no`
+  );
+  return response.data;
+};
+function App()
+ {
+   const [city, setCity] = useState("");
+   const [autoFetchCity, setAutoFetchCity] = useState("");
+   const { data, isError, error, isLoading, refetch } = useWeatherQuery(city);
 
-  const API_KEY = "1cb58c1f6189475381a71419250508"; 
-
-  //  Auto-fetch weather based on current location on page load
-  useEffect(() => {
-    getCurrentLocationWeather();
-  }, []);
-
-  //  Get user's current location and fetch weather
-  const getCurrentLocationWeather = () => {
-    if (navigator.geolocation) {
-      navigator.geolocation.getCurrentPosition(
-        async (position) => {
-          const lat = position.coords.latitude;
-          const lon = position.coords.longitude;
-          fetchWeatherByCoords(lat, lon);
-        },
-        (err) => {
-          console.error(err);
-          setError("Location access denied. Please enter city manually.");
-        }
-      );
-    } else {
-      setError("Geolocation is not supported by your browser.");
+   useEffect(() => {
+  navigator.geolocation.getCurrentPosition(
+    async (position) => {
+      const lat = position.coords.latitude;
+      const lon = position.coords.longitude;
+      try {
+        const res = await axios.get(`https://api.weatherapi.com/v1/forecast.json?key=${API_KEY}&q=${lat},${lon}&days=14&aqi=no&alerts=no`);
+        const cityName = `${res.data.location.name}, ${res.data.location.country}`;
+        setCity(cityName);
+      } catch (err) {
+        console.error("Error fetching weather by location", err);
+      }
+    },
+    (error) => {
+      console.error("Location access denied:", error);
     }
-  };
+  );
+}, []);
 
-  //  Fetch weather by coordinates
-  const fetchWeatherByCoords = async (lat, lon) => {
-    setLoading(true);
-    try {
-      const response = await axios.get(
-        `https://api.weatherapi.com/v1/forecast.json?key=${API_KEY}&q=${lat},${lon}&days=7&aqi=no&alerts=no`
-      );
-      setWeather(response.data);
-      setCity(response.data.location.name);
-    } catch {
-      setError("Failed to fetch weather for your location.");
-    }
-    setLoading(false);
-  };
-
-  //  Fetch weather by city input
-  const getWeather = async () => {
-    if (!city.trim()) {
-      setError("Please enter a city name");
-      return;
-    }
-    setLoading(true);
-    setError("");
-    try {
-      const response = await axios.get(
-        `https://api.weatherapi.com/v1/forecast.json?key=${API_KEY}&q=${city}&days=7&aqi=no&alerts=no`
-      );
-      setWeather(response.data);
-    } catch {
-      setError("City not found or invalid API request!");
-      setWeather(null);
-    }
-    setLoading(false);
-  };
-
-  const formatTime = (time) => {
-    const hour = new Date(time).getHours();
-    return hour === 0 ? "12 am" : hour < 12 ? `${hour} am` : hour === 12 ? "12 pm" : `${hour - 12} pm`;
-  };
-
-  const getDayName = (dateStr) => {
-    const date = new Date(dateStr);
-    return date.toLocaleDateString("en-US", { weekday: "short" });
-  };
-
+  
   return (
-       <div className="flex flex-col items-center min-h-screen bg-gradient-to-br from-blue-100 via-blue-500 to-blue-400 p-6">
-      <h1 className="text-5xl font-extrabold text-white mb-8 drop-shadow-lg text-center"> ☀️Weather App🌈</h1>
-
-      
-      
-      <div className="flex justify-center mb-6 w-full">
-  <div className="flex gap-3 mb-4 w-full max-w-xl"> {/* Increased max width */}
-    <Input
-      placeholder="Enter city name..."
-      value={city}
-      onChange={(e) => setCity(e.target.value)}
-      onKeyPress={(e) => e.key === "Enter" && getWeather()}
-      className="bg-white/80 border-gray-300 shadow-md focus:ring-2 focus:ring-blue-500 text-lg px-4 w-full" 
-      // <-- Added w-full to stretch input width
-    />
-    <Button className="bg-blue-600 hover:bg-blue-700 shadow-md px-6" onClick={getWeather}>
-      Search
-    </Button>
-  </div>
-</div>
-
-
-      {/* Error Message */}
-      {error && <p className="text-red-600 text-lg font-medium">{error}</p>}
-      {loading && <p className="text-blue-800 text-xl font-medium animate-pulse">Fetching weather...</p>}
-
-      {weather && !loading && (
-        <div className="w-full px-2">
-          {/* TOP SECTION: Current Weather (Left) + Hourly Forecast (Right) */}
-          <div className="flex flex-col lg:flex-row gap-6 mb-8 max-w-6xl mx-auto">
-            {/* Current Weather Card */}
-            <Card className="flex-1 p-6 shadow-2xl bg-white/90 rounded-2xl">
-              <h2 className="text-3xl font-bold text-gray-800">
-                {weather.location.name}, {weather.location.country}
-              </h2>
-              <p className="text-gray-500 mt-1">
-                {new Date(weather.location.localtime).toLocaleDateString("en-US", {
-                  weekday: "long",
-                  year: "numeric",
-                  month: "long",
-                  day: "numeric",
-                })}
-              </p>
-
-              <div className="flex items-center justify-between mt-6">
-                <div>
-                  <p className="text-5xl font-extrabold text-blue-700">{weather.current.temp_c}°C</p>
-                  <p className="capitalize text-gray-700 mt-1">{weather.current.condition.text}</p>
-                  <div className="mt-4 text-gray-600 text-sm space-y-1">
-                    <p>💧 Humidity: {weather.current.humidity}%</p>
-                    <p>🌬️ Wind: {weather.current.wind_kph} km/h</p>
-                    <p>🌧️ Precip: {weather.current.precip_mm} mm</p>
-                  </div>
-                </div>
-                <img src={weather.current.condition.icon} alt="Weather Icon" className="w-28" />
-              </div>
-            </Card>
-
-            {/* Hourly Forecast Card */}
-            <Card className="flex-1 p-6 shadow-2xl bg-white/90 rounded-2xl">
-              <h3 className="mb-5 text-center text-3xl font-bold text-gray-800">Hourly Forecast</h3>
-              <div className="flex overflow-x-auto gap-4 py-6 px-4  scrollbar-thin scrollbar-thumb-blue-500 ">
-                {weather.forecast.forecastday[0].hour
-                  .filter((_, index) => index % 3 === 0)
-                  .map((hour, index) => (
-                    <div
-                      key={index}
-                      className="flex flex-col items-center min-w-[100px] bg-blue-50 rounded-xl p-7 shadow hover:scale-105 transition"
-                    >
-                      <p className="text-sm text-gray-700 ">{formatTime(hour.time)}</p>
-                      <img src={hour.condition.icon} alt="weather" className="w-10 h-10" />
-                      <p className="font-semibold text-blue-600">{hour.temp_c}°</p>
-                    </div>
-                  ))}
-              </div>
-            </Card>
-          </div>
-           <div className="flex flex-col lg:flex-row gap-6 mb-8 max-w-6xl mx-auto">
-          {/* BOTTOM SECTION: 7-Day Forecast */}
-          <Card className="flex-1 p-4 shadow-2xl bg-white/90 rounded-2xl">
-            <h3 className="text-2xl font-bold mb-6 text-gray-800 text-center">7-Day Forecast</h3>
-            <div className="flex overflow-x-auto gap-5 py-4 scrollbar-thin scrollbar-thumb-blue-500">
-              {weather.forecast.forecastday.map((day, index) => (
-                <div
-                  key={index}
-                  className="flex flex-col items-center bg-blue-50 rounded-xl p-3 shadow hover:shadow-lg transition min-w-[140px]"
-                >
-                  <p className="font-bold text-lg text-gray-800">{getDayName(day.date)}</p>
-                  <img src={day.day.condition.icon} alt="weather" className="w-14 h-14 my-2" />
-                  <p className="text-gray-600 text-sm text-center">{day.day.condition.text}</p>
-                  <div className="flex gap-3 mt-2">
-                    <span className="font-bold text-blue-700 text-lg">{Math.round(day.day.maxtemp_c)}°</span>
-                    <span className="text-gray-500 text-lg">{Math.round(day.day.mintemp_c)}°</span>
-                  </div>
-                  <p className="text-xs text-gray-600 mt-1">💧 {day.day.totalprecip_mm.toFixed(1)} mm</p>
-                  <p className="text-xs text-gray-600">🌬 {day.day.maxwind_kph.toFixed(1)} km/h</p>
-                </div>
-              ))}
-            </div>
-          </Card>
-          </div>
+       <div className=" min-h-screen bg-gradient-to-br from-blue-500 via-pink-400 via-pink-400 to-blue-600 p-6">
+        <h1 className="text-center text-white/90 lg:text-5xl font-extrabold mt-5">☀️Weather App🌈</h1>
+        <div className="flex gap-3 justify-center mt-6 ">
+          <input placeholder="Search Country or City..." type="text"
+            value={city} 
+           onChange={(a) => setCity(a.target.value)}
+          className="border border-gray-300 rounded-md h-10 focus:outline-none focus:ring-2 focus:ring-blue-500 w-[350px] pl-2 bg-white/80 " >
+          </input>
+          <button className="bg-blue-600 rounded w-20  focus:outline-none focus:ring-2 focus:ring-blue-300 text-white"
+          onClick={() => refetch()}>
+            Search
+          </button>
         </div>
-      )}
+        {isLoading && <p className="text-center text-gray-900 mt-5">Loading...</p>}
+        {isError && <p className="text-center text-red-600 mt-5">cannot find..</p>}
+
+        {data && !isLoading &&(
+        <div className="flex   mt-10 mt-10 rounded py-10 lg:flex-row flex-col p-20 gap-10">
+        <div className="bg-white flex flex-row rounded-2xl pt-6 pb-8 shadow-2xl bg-white/70 p-10 ">
+        <div>
+             <h2 className="text-3xl text-blue-600 font-bold mb-6 ">{data.location.name}, {data.location.country}</h2>
+           
+             <p className="text-gray-700 mt-1 text-lg font-semibold">🌡️{data.current.temp_c}°C - {data.current.condition.text}</p>
+             
+              <p className="text-gray-500 mt-1">💧 Humidity: {data.current.humidity}%</p>
+            <p className="text-gray-500 mt-1">🌪️ Wind: {data.current.wind_kph} km/h</p>
+            <p className="text-gray-500 mt-1" >🌧️ Precip: {data.current.precip_mm} mm</p>
+              <p className="text-gray-500 mt-1">
+                           {new Date(data.location.localtime).toLocaleDateString("en-US", {
+                           weekday: "long",
+                            year: "numeric",
+                             month: "long",
+                             day: "numeric",
+                            })}            
+                           </p>
+            </div>
+            <img
+                   src={data.current.condition.icon}
+                      alt="weather icon"
+                          className="w-[120px] h-[120px] mt-20 mr-6"/>
+         </div>
+         
+         <div className="bg-white flex-1 flex-col border-2xl border-gray-200 rounded-2xl shadow-2xl bg-white/70 p-4 w-[70vh] ">
+            <h2 className="text-2xl text-blue-600 font-bold text-center">Hourly forecast</h2>
+         
+         <div className="flex gap-3 py-3 px-4 overflow-x-auto scrollbar-thin scrollbar-thumb-blue-500">
+              {data.forecast.forecastday[0].hour.map((hourData, index) => (
+               <div key={index} className="flex flex-col items-center min-w-[122px] bg-blue-50 rounded-xl p-2 shadow hover:scale-105 transition">
+                <p className="text-sm font-bold text-gray-700 ">{new Date(hourData.time).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</p>
+              <img src={hourData.condition.icon} alt="icon" className="w-10 h-10" />
+               <p className="text-sm font-bold text-gray-600">{hourData.temp_c}°C</p>
+              <p className="text-sm text-gray-600 text-center">{hourData.condition.text}</p>
+             </div>
+              ))}
+         </div>
+       </div>
+       
     </div>
+        )}
+        {data && !isLoading &&(
+        <div className="flex  rounded py-10 lg:flex-row flex-col p-20 gap-10">
+     <div className="bg-white flex flex-col rounded-2xl pt-6 pb-8 shadow-2xl bg-white/70 p-10  w-[174.5vh]">
+     <h2 className="text-2xl text-blue-600 font-bold text-center">Daily Forecast</h2>
+         <div className="flex gap-4 py-3 px-4 flex-row overflow-x-auto scrollbar-thin scrollbar-thumb-blue-500">
+      {data?.forecast?.forecastday?.map((day, index) => (
+          <div key={index} className="flex flex-col items-center min-w-[150px] bg-blue-50 rounded-xl p-3 shadow hover:scale-105 transition">
+         <p className="font-semibold">{new Date(day.date).toLocaleDateString("en-US", { weekday: "long" })}</p>
+        <img src={day.day.condition.icon} alt="icon" className="w-20 h-20" />
+        <p className="text-center text-sm text-gray-600">{day.day.condition.text}</p>
+        <p className="text-center text-sm text-gray-700">Max:🌡️{day.day.maxtemp_c}°C</p>
+        <p className="text-center text-sm text-gray-700">Min:❄️ {day.day.mintemp_c}°C </p>
+        </div>
+     ))}
+     </div>
+     </div>
+
+     </div>
+        )}
+      </div>
     
   );
 }
-
 export default App;
