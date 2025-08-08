@@ -80,7 +80,7 @@ function App()
             <img
                    src={data.current.condition.icon}
                       alt="weather icon"
-                          className="lg:w-[130px] lg:[130px] lg:mt-10 lg:mr-6"/>
+                          className="lg:w-[130px] lg:[130px] md:w-[160px] md:ml-20 lg:ml-6 lg:mt-10 lg:mr-6"/>
          </div>
          
          <div className="bg-white flex-1 flex-col border-2xl border-gray-200 rounded-2xl shadow-2xl bg-white/70 py-4 lg:px-4 lg:w-[70vh] ">
