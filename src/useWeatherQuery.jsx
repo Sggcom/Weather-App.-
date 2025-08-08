@@ -1,4 +1,4 @@
-// src/hooks/useWeatherQuery.js
+// useWeatherQuery.js
 import { useQuery } from "@tanstack/react-query";
 import axios from "axios";
 

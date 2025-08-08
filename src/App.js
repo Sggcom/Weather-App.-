@@ -10,7 +10,10 @@ const fetchWeather = async (city) => {
   return response.data;
 };
 function App()
- {
+ {  
+  const [searchQuery, setSearchQuery] = useState("");
+  const [suggestions, setSuggestions] = useState([]);
+  const [inputTouched, setInputTouched] = useState(false);
    const [city, setCity] = useState("");
    const [autoFetchCity, setAutoFetchCity] = useState("");
    const { data, isError, error, isLoading, refetch } = useWeatherQuery(city);
@@ -24,6 +27,7 @@ function App()
         const res = await axios.get(`https://api.weatherapi.com/v1/forecast.json?key=${API_KEY}&q=${lat},${lon}&days=14&aqi=no&alerts=no`);
         const cityName = `${res.data.location.name}, ${res.data.location.country}`;
         setCity(cityName);
+        setSearchQuery(cityName);
       } catch (err) {
         console.error("Error fetching weather by location", err);
       }
@@ -34,23 +38,82 @@ function App()
   );
 }, []);
 
+useEffect(() => {
+  const fetchSuggestions = async () => {
+    if (searchQuery.length < 1 || !inputTouched) {
+  setSuggestions([]);
+  return;
+}
+
+
+    try {
+      const res = await axios.get(
+        `https://api.weatherapi.com/v1/search.json?key=${API_KEY}&q=${searchQuery}`
+      );
+      setSuggestions(res.data);
+    } catch (err) {
+      console.error("Error fetching suggestions", err);
+    }
+  };
+
+  const debounceTimeout = setTimeout(() => {
+    fetchSuggestions();
+  }, 300); // debounce user input
+
+  return () => clearTimeout(debounceTimeout);
+}, [searchQuery]);
+
   
   return (
-       <div className=" min-h-screen bg-gradient-to-br from-blue-500 via-pink-400 via-pink-400 to-blue-600 p-6">
+       <div className=" min-h-screen bg-gradient-to-br from-blue-500 via-pink-400 via-pink-400 to-blue-600 lg:p-6 sm:p-2">
         <h1 className="text-center text-white/90 lg:text-5xl text-2xl md:text-3xl font-extrabold mt-5">☀️Weather App🌈</h1>
         <div className="flex gap-3 justify-center mt-6 ">
           <input placeholder="Search Country or City..." type="text"
-            value={city} 
-           onChange={(a) => setCity(a.target.value)}
+               value={searchQuery}
+                 onChange={(e) => {
+                 setSearchQuery(e.target.value);
+                 setInputTouched(true);
+                 }}
+            
+                 onKeyDown={(e) => {
+               if (e.key === "Enter") {
+                setCity(searchQuery);
+               }
+               }}
           className="border border-gray-300 rounded-md h-10 focus:outline-none focus:ring-2 focus:ring-blue-500 md:w-[350px] lg:w-[400px] pl-2 bg-white/80 " >
           </input>
+          {suggestions.length > 0 && (
+  <ul className="absolute bg-white border border-gray-300 rounded-md mt-11 max-h-60 overflow-y-auto z-10 w-[300px]">
+    {suggestions.map((item, index) => (
+      <li
+        key={index}
+        onClick={() => {
+          setCity(`${item.name}, ${item.country}`);
+          setSearchQuery(`${item.name}, ${item.country}`);
+          setSuggestions([]);
+           setInputTouched(false);
+        }}
+        className="cursor-pointer px-4 py-2 hover:bg-blue-100"
+      >
+        {item.name}, {item.country}
+      </li>
+    ))}
+  </ul>
+)}
+
           <button className="bg-blue-600 rounded w-20 focus:outline-none focus:ring-2 focus:ring-blue-300 text-white"
-          onClick={() => refetch()}
-          onKeyDown={(e) => {
-    if (e.key === "Enter") {
-      refetch();
-    }
-  }}>
+          onClick={() => {
+  setCity(searchQuery);
+  setSuggestions([]);
+}}
+onKeyDown={(e) => {
+  if (e.key === "Enter") {
+    setCity(searchQuery);
+    setSuggestions([]);
+  }
+}}
+
+       >
             Search
           </button>
         </div>
@@ -58,7 +121,7 @@ function App()
         {isError && <p className="text-center text-red-600 mt-5">cannot find..</p>}
 
         {data && !isLoading &&(
-        <div className="flex mt-20  mb-10 rounded lg:py-10 lg:flex-row flex-col lg:p-20 gap-10">
+        <div className="flex mt-10 rounded lg:py-10 lg:flex-row flex-col lg:p-20 gap-10">
         <div className="bg-white flex flex-col md:flex-row  rounded-2xl md:pt-6 md:pb-8 shadow-2xl bg-white/70 p-10 ">
         <div>
              <h2 className="text-3xl text-blue-600 font-bold mb-6 ">{data.location.name}, {data.location.country}</h2>
@@ -80,7 +143,7 @@ function App()
             <img
                    src={data.current.condition.icon}
                       alt="weather icon"
-                          className="lg:w-[130px] lg:[130px] md:w-[160px] md:ml-20 lg:ml-6 lg:mt-10 lg:mr-6"/>
+                          className="lg:w-[130px] lg:[130px] md:w-[200px] md:ml-20 lg:ml-6 lg:mt-10 lg:mr-6"/>
          </div>
          
          <div className="bg-white flex-1 flex-col border-2xl border-gray-200 rounded-2xl shadow-2xl bg-white/70 py-4 lg:px-4 lg:w-[70vh] ">
