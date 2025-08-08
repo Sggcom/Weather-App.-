@@ -37,15 +37,20 @@ function App()
   
   return (
        <div className=" min-h-screen bg-gradient-to-br from-blue-500 via-pink-400 via-pink-400 to-blue-600 p-6">
-        <h1 className="text-center text-white/90 lg:text-5xl font-extrabold mt-5">☀️Weather App🌈</h1>
+        <h1 className="text-center text-white/90 lg:text-5xl text-2xl md:text-3xl font-extrabold mt-5">☀️Weather App🌈</h1>
         <div className="flex gap-3 justify-center mt-6 ">
           <input placeholder="Search Country or City..." type="text"
             value={city} 
            onChange={(a) => setCity(a.target.value)}
-          className="border border-gray-300 rounded-md h-10 focus:outline-none focus:ring-2 focus:ring-blue-500 w-[350px] pl-2 bg-white/80 " >
+          className="border border-gray-300 rounded-md h-10 focus:outline-none focus:ring-2 focus:ring-blue-500 md:w-[350px] lg:w-[400px] pl-2 bg-white/80 " >
           </input>
-          <button className="bg-blue-600 rounded w-20  focus:outline-none focus:ring-2 focus:ring-blue-300 text-white"
-          onClick={() => refetch()}>
+          <button className="bg-blue-600 rounded w-20 focus:outline-none focus:ring-2 focus:ring-blue-300 text-white"
+          onClick={() => refetch()}
+          onKeyDown={(e) => {
+    if (e.key === "Enter") {
+      refetch();
+    }
+  }}>
             Search
           </button>
         </div>
@@ -53,8 +58,8 @@ function App()
         {isError && <p className="text-center text-red-600 mt-5">cannot find..</p>}
 
         {data && !isLoading &&(
-        <div className="flex   mt-10 mt-10 rounded py-10 lg:flex-row flex-col p-20 gap-10">
-        <div className="bg-white flex flex-row rounded-2xl pt-6 pb-8 shadow-2xl bg-white/70 p-10 ">
+        <div className="flex mt-10 rounded lg:py-10 lg:flex-row flex-col lg:p-20 gap-10">
+        <div className="bg-white flex flex-col md:flex-row  rounded-2xl md:pt-6 md:pb-8 shadow-2xl bg-white/70 p-10 ">
         <div>
              <h2 className="text-3xl text-blue-600 font-bold mb-6 ">{data.location.name}, {data.location.country}</h2>
            
@@ -75,13 +80,13 @@ function App()
             <img
                    src={data.current.condition.icon}
                       alt="weather icon"
-                          className="w-[120px] h-[120px] mt-20 mr-6"/>
+                          className="lg:w-[130px] lg:[130px] lg:mt-10 lg:mr-6"/>
          </div>
          
-         <div className="bg-white flex-1 flex-col border-2xl border-gray-200 rounded-2xl shadow-2xl bg-white/70 p-4 w-[70vh] ">
+         <div className="bg-white flex-1 flex-col border-2xl border-gray-200 rounded-2xl shadow-2xl bg-white/70 py-4 lg:px-4 lg:w-[70vh] ">
             <h2 className="text-2xl text-blue-600 font-bold text-center">Hourly forecast</h2>
          
-         <div className="flex gap-3 py-3 px-4 overflow-x-auto scrollbar-thin scrollbar-thumb-blue-500">
+         <div className="flex gap-3 py-6 px-4 overflow-x-auto scrollbar-thin scrollbar-thumb-blue-500">
               {data.forecast.forecastday[0].hour.map((hourData, index) => (
                <div key={index} className="flex flex-col items-center min-w-[122px] bg-blue-50 rounded-xl p-2 shadow hover:scale-105 transition">
                 <p className="text-sm font-bold text-gray-700 ">{new Date(hourData.time).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</p>
@@ -96,10 +101,10 @@ function App()
     </div>
         )}
         {data && !isLoading &&(
-        <div className="flex  rounded py-10 lg:flex-row flex-col p-20 gap-10">
-     <div className="bg-white flex flex-col rounded-2xl pt-6 pb-8 shadow-2xl bg-white/70 p-10  w-[174.5vh]">
+        <div className="flex  rounded  lg:flex-row flex-col lg:p-20 gap-10">
+     <div className="bg-white flex flex-col rounded-2xl pt-6 pb- shadow-2xl bg-white/70 lg:p-5  lg:w-[174.5vh]">
      <h2 className="text-2xl text-blue-600 font-bold text-center">Daily Forecast</h2>
-         <div className="flex gap-4 py-3 px-4 flex-row overflow-x-auto scrollbar-thin scrollbar-thumb-blue-500">
+         <div className="flex gap-4 py-5 px-4 flex-row overflow-x-auto scrollbar-thin scrollbar-thumb-blue-500">
       {data?.forecast?.forecastday?.map((day, index) => (
           <div key={index} className="flex flex-col items-center min-w-[150px] bg-blue-50 rounded-xl p-3 shadow hover:scale-105 transition">
          <p className="font-semibold">{new Date(day.date).toLocaleDateString("en-US", { weekday: "long" })}</p>
