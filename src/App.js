@@ -58,7 +58,7 @@ function App()
         {isError && <p className="text-center text-red-600 mt-5">cannot find..</p>}
 
         {data && !isLoading &&(
-        <div className="flex mt-10 rounded lg:py-10 lg:flex-row flex-col lg:p-20 gap-10">
+        <div className="flex mt-20  mb-10 rounded lg:py-10 lg:flex-row flex-col lg:p-20 gap-10">
         <div className="bg-white flex flex-col md:flex-row  rounded-2xl md:pt-6 md:pb-8 shadow-2xl bg-white/70 p-10 ">
         <div>
              <h2 className="text-3xl text-blue-600 font-bold mb-6 ">{data.location.name}, {data.location.country}</h2>
@@ -102,7 +102,7 @@ function App()
         )}
         {data && !isLoading &&(
         <div className="flex  rounded  lg:flex-row flex-col lg:p-20 gap-10">
-     <div className="bg-white flex flex-col rounded-2xl pt-6 pb- shadow-2xl bg-white/70 lg:p-5  lg:w-[174.5vh]">
+     <div className="bg-white flex flex-col rounded-2xl pt-6 pb-3 shadow-2xl bg-white/70 lg:p-5  lg:w-[174.5vh]">
      <h2 className="text-2xl text-blue-600 font-bold text-center">Daily Forecast</h2>
          <div className="flex gap-4 py-5 px-4 flex-row overflow-x-auto scrollbar-thin scrollbar-thumb-blue-500">
       {data?.forecast?.forecastday?.map((day, index) => (
