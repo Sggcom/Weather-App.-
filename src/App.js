@@ -80,10 +80,21 @@ useEffect(() => {
                 setCity(searchQuery);
                }
                }}
+               onBlur={() => {
+    // Delay hiding suggestions to allow click on items
+    setTimeout(() => {
+      setSuggestions([]);
+    }, 150);
+  }}
+  // onFocus={() => {
+  //   if (searchQuery.trim() !== "" && suggestions.length === 0) {
+  //     fetchSuggestions(); // optional if suggestions are fetched on focus
+  //   }
+  // }}
           className="border border-gray-300 rounded-md h-10 focus:outline-none focus:ring-2 focus:ring-blue-500 md:w-[350px] lg:w-[400px] pl-2 bg-white/80 " >
           </input>
           {suggestions.length > 0 && (
-  <ul className="absolute bg-white border border-gray-300 rounded-md mt-11 max-h-60 overflow-y-auto z-10 w-[300px]">
+  <ul className="absolute bg-white border border-gray-300 rounded-md mt-11 max-h-60 overflow-y-auto z-10 w-[495px]">
     {suggestions.map((item, index) => (
       <li
         key={index}
