@@ -17,6 +17,10 @@ function App()
    const [city, setCity] = useState("");
    const [autoFetchCity, setAutoFetchCity] = useState("");
    const { data, isError, error, isLoading, refetch } = useWeatherQuery(city);
+   // Get current hour
+const currentHour = new Date().getHours();
+const currentChanceOfRain = data.forecast.forecastday[0].hour[currentHour].chance_of_rain;
+
 
    useEffect(() => {
   navigator.geolocation.getCurrentPosition(
@@ -65,7 +69,7 @@ useEffect(() => {
 
   
   return (
-       <div className=" min-h-screen bg-gradient-to-br from-blue-500 via-pink-400 via-pink-400 to-blue-600 lg:p-6 sm:p-2">
+       <div className=" min-h-screen bg-gradient-to-br from-blue-500 via-pink-400 via-pink-400 to-blue-600 lg:p-6 p-2">
         <h1 className="text-center text-white/90 lg:text-5xl text-2xl md:text-3xl font-extrabold mt-5">☀️Weather App🌈</h1>
         <div className="flex gap-3 justify-center mt-6 ">
           <input placeholder="Search Country or City..." type="text"
@@ -86,11 +90,7 @@ useEffect(() => {
       setSuggestions([]);
     }, 150);
   }}
-  // onFocus={() => {
-  //   if (searchQuery.trim() !== "" && suggestions.length === 0) {
-  //     fetchSuggestions(); // optional if suggestions are fetched on focus
-  //   }
-  // }}
+ 
           className="border border-gray-300 rounded-md h-10 focus:outline-none focus:ring-2 focus:ring-blue-500 md:w-[350px] lg:w-[400px] pl-2 bg-white/80 " >
           </input>
           {suggestions.length > 0 && (
@@ -128,11 +128,28 @@ onKeyDown={(e) => {
             Search
           </button>
         </div>
-        {isLoading && <p className="text-center text-gray-900 mt-5">Loading...</p>}
-        {isError && <p className="text-center text-red-600 mt-5">cannot find..</p>}
+       {/* Loading State */}
+{isLoading && (
+  <div className="flex justify-center mt-6">
+    <div className="animate-spin rounded-full h-10 w-10 border-t-4 border-blue-500 border-solid"></div>
+    <span className="ml-3 text-blue-600 font-semibold text-lg">Loading...</span>
+  </div>
+)}
+
+{/* Error State */}
+{isError && (
+  <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative mt-6 w-fit mx-auto shadow-lg">
+    <strong className="font-bold">Oops! </strong>
+    <span className="block sm:inline">Cannot find results.</span>
+    <span className="absolute top-0 bottom-0 right-0 px-4 py-3">
+      
+    </span>
+  </div>
+)}
+
 
         {data && !isLoading &&(
-        <div className="flex mt-10 rounded lg:py-10 lg:flex-row flex-col lg:p-20 gap-10">
+        <div className="flex mt-10 mb-10 rounded lg:py-10 lg:flex-row flex-col lg:p-10 gap-10">
         <div className="bg-white flex flex-col md:flex-row  rounded-2xl md:pt-6 md:pb-8 shadow-2xl bg-white/70 p-10 ">
         <div>
              <h2 className="text-3xl text-blue-600 font-bold mb-6 ">{data.location.name}, {data.location.country}</h2>
@@ -143,6 +160,9 @@ onKeyDown={(e) => {
             <p className="text-gray-500 mt-1">🌪️ Wind: {data.current.wind_kph} km/h</p>
             <p className="text-gray-500 mt-1" >🌧️ Precip: {data.current.precip_mm} mm</p>
               <p className="text-gray-500 mt-1">
+                 <p className="text-gray-500 mt-1">
+                               ☔ Chance of rain: {currentChanceOfRain}%
+                             </p>
                            {new Date(data.location.localtime).toLocaleDateString("en-US", {
                            weekday: "long",
                             year: "numeric",
@@ -150,6 +170,8 @@ onKeyDown={(e) => {
                              day: "numeric",
                             })}            
                            </p>
+                          
+
             </div>
             <img
                    src={data.current.condition.icon}
@@ -157,7 +179,7 @@ onKeyDown={(e) => {
                           className="lg:w-[130px] lg:[130px] md:w-[200px] md:ml-20 lg:ml-6 lg:mt-10 lg:mr-6"/>
          </div>
          
-         <div className="bg-white flex-1 flex-col border-2xl border-gray-200 rounded-2xl shadow-2xl bg-white/70 py-4 lg:px-4 lg:w-[70vh] ">
+         <div className="bg-white flex-1 flex-col border-2xl border-gray-200 rounded-2xl shadow-2xl bg-white/70 py-4 lg:w-[calc(50%-20px)] ">
             <h2 className="text-2xl text-blue-600 font-bold text-center">Hourly forecast</h2>
          
          <div className="flex gap-3 py-6 px-4 overflow-x-auto scrollbar-thin scrollbar-thumb-blue-500">
@@ -167,6 +189,9 @@ onKeyDown={(e) => {
               <img src={hourData.condition.icon} alt="icon" className="w-10 h-10" />
                <p className="text-sm font-bold text-gray-600">{hourData.temp_c}°C</p>
               <p className="text-sm text-gray-600 text-center">{hourData.condition.text}</p>
+              <p className="text-sm text-gray-600 text-center mt-1">
+  ☔ Chance of rain: {hourData.chance_of_rain}%
+</p>
              </div>
               ))}
          </div>
@@ -175,8 +200,8 @@ onKeyDown={(e) => {
     </div>
         )}
         {data && !isLoading &&(
-        <div className="flex  rounded  lg:flex-row flex-col lg:p-20 gap-10">
-     <div className="bg-white flex flex-col rounded-2xl pt-6 pb-3 shadow-2xl bg-white/70 lg:p-5  lg:w-[174.5vh]">
+        <div className="flex  rounded  lg:flex-row flex-col lg:p-10 gap-10">
+     <div className="bg-white flex flex-col rounded-2xl pt-6 pb-3 shadow-2xl bg-white/70 lg:p-5 md:mb-10 w-[calc(100%-1px)]">
      <h2 className="text-2xl text-blue-600 font-bold text-center">Daily Forecast</h2>
          <div className="flex gap-4 py-5 px-4 flex-row overflow-x-auto scrollbar-thin scrollbar-thumb-blue-500">
       {data?.forecast?.forecastday?.map((day, index) => (
@@ -186,6 +211,9 @@ onKeyDown={(e) => {
         <p className="text-center text-sm text-gray-600">{day.day.condition.text}</p>
         <p className="text-center text-sm text-gray-700">Max:🌡️{day.day.maxtemp_c}°C</p>
         <p className="text-center text-sm text-gray-700">Min:❄️ {day.day.mintemp_c}°C </p>
+         <p className="text-center text-sm text-gray-600 font-semibold">
+         Chance of rain: ☔ {day.day.daily_chance_of_rain}%
+        </p>
         </div>
      ))}
      </div>
